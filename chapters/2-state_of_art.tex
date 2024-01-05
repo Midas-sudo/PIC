@@ -1,67 +1,84 @@
 %!TEX root = ../dissertation.tex
 
-\chapter{State Of The Art}
+\chapter{State-Of-The-Art}
 \label{chapter:state_art}
-
-The growing demand for faster General-Purpose Processors (GPPs)  The improvement of computer speed and capabilities is a very broad area of investigation, with research focused on several areas, from faster computational units, like accelerators, to improvements in data access through pre-fetching, memory caching, and data streaming.
-
+In this chapter, a review of state-of-the-art implementation of Data Streaming and Vector Extension will be made with.
 
 
-% Data Level paralelism
+%There has been a growing demand for faster General-Purpose Processors (GPPs) which has led to a lot of development in improving the speed of instruction execution and overall clock speed. However as the usage of data-intensive programs like machine learning and artificial intelligence continues to grow, it is becoming increasingly clear that enhancing the processor speed alone will not be sufficient if they depend heavily on surrounding components such as memory. 
+
+%To tackle this issue, various techniques have been developed and studied in the field of memory reading and writing as well as data manipulation. These methods include data-level parallelism, memory access prefetching, memory caching, data streaming, and others.
 
 
-\section{Unlimited Vector Extention}
+\input{chapters/2.1-Data Streaming}
+\input{chapters/2.2-Vector Extentions}
 
-Unlimited Vector Extention is a novelty solution that aims to surpass the existing problems of current state-of-the-art solutions of scalable vector extensions, through the use of a data streaming engine, combining streaming and SIMD processing, which allows the exploitation of data parallelism.
-
-
-The proposed ISA tries to reduce latencies associated with loop control, memory access indexing, and memory access through the use of new instructions that allow a pre-configuration of the stream and the memory access patterns. 
-This anticipation of the access control allows for accurate and fast pre-fetching even with multidimensional arrays or indirect memory accesses. 
-
-
-\subsection{Differentiation}
-%The utilization of Single Instruction Multiple Data is not something new, however currently developed approaches focus on operation on fixed-size registers (e.g., Intel MMX, SSE, AVX, etc) this leads to an easier implementation and simplifies hardware requirements. 
-
-%Other solutions have emerged allowing for a more agnostic approach to the physical vector size of registers from the point of view of the programmer. This implementation allows that, only at run time, the compiled software adapts to the given vector size of the system. ARM SVE and RISC-V Vector extension (RVV) are two of these types of implementations.
-
-%The use of any of these solutions incurs the need to modify the active lanes of the vector achieving that through vector control instructions. The addition of these instructions to the iterations leads to an increase in the number of instructions which leads to higher latencies. 
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.77\linewidth]{images/UVE-Comparison.pdf}
-    \caption{A boat.}
-    \label{fig:uve-comparison}
-\end{figure}
-
-The distinguishability of this solution, from  currently developed SIMD solutions (ARM SVE and RISC-V Vector extension (RVV)) comes from features like:
-\begin{itemize}
-\item[]  \Tbullet{F1}{Decoupled Memory Access} The ability to decouple the memory accesses from the computation part by streaming the data directly to the register allowing the occurrence of loads/stores in parallel with the data manipulation thus reducing the memory access latency.
-\item[]  \Tbullet{F2}{Indexing-free Loops} Describing the load/store patterns in advance, minimizing the number of instructions related to memory indexing, reducing the pressure on the processor pipeline (see the UVE Fig.\ref{fig:uve-comparison}.D. It also helps avoid the transfer of miss-predicted data.
-\item[]  \Tbullet{F3}{Simpified Vectorization} The description of memory pattern access allows the Streaming Engine to perform all non-coalesced accesses as linear patterns. This leads to a simplified vectorization since memory is always aligned from the execution pipeline point of view - see Fig. \ref{fig:uve-mem-access}. 
-\item[]  \Tbullet{F4}{Implicit Load/Store} Due to the description of the streams in the loop preamble, the indexing instructions can be removed meaning that all explicit loads and stores are simply associated with active streams and different vector register.
-\end{itemize}
-
-Besides the mentioned features, UVE is also register-size agnostic similar to SVE and RVV, however in UVE there is no need for control instruction since the Streaming Engine automatically disables all vector elements that fall out of bounds, making the loops simpler with a minimal set of control functions.
-
-
-\begin{figure}[H]
-	\begin{center}
- 		\includegraphics[width=0.37\linewidth]{images/memory-access.pdf}
- 		\caption{Execution time for each configuration}
- 		\label{fig:uve-mem-access}
-	\end{center} 
-\end{figure}
-
-\subsection{Data Streaming}
-
-The proposed UVE 
+%% \section{Data Level Paralelism}
+%% Most processors currently support \acrshort{DLP} through Single Instructions Multiple Data (\acrshort{SIMD}) operations. \acrshort{SIMD} operations, as the acronym suggests, is the parallel processing of the same instruction with different pieces of data. This parallel processing can lead to higher throughput. In most cases \acrshort{SIMD} is used in program loops that manipulate data collections like arrays, requiring a processor architecture with wide Arithmetic and Logic Units (\acrshort{ALUs}). 
+%% 
+%% %Although SIMD operations can be seen as something to always use, it has some limitations and can some times be impossible to exploit with certain applications. Executing operations in parallel to different data positions in memory means that said data can not be dependent of each other, the speed gain of parallelizing operations can also be compromised due to memory limitations like memory bandwidth, complex data pattern access and conditional access.
+%% 
+%% While Single Instructions Multiple Data (\acrshort{SIMD}) operations can be a useful approach to speed up certain applications there are limitations to its use. For example, data being operated in parallel cannot be dependent on each other. Additionally, the speed gain from parallelizing operations can be compromised by memory limitations such as memory bandwidth, complex data pattern accesses, and conditional memory accesses. Therefore, using SIMD operations with certain applications may not always be possible or beneficial.
+%% 
+%% 
+%% Many modern \acrfull{ISA} come equipped with extensions that allow for the use of \acrfull{SIMD} operations. Examples of such extensions are Intel's Advanced Vector eXtension (AVX), the Streaming SIMD Extensions (SSE), and the ARM NEON vector extension\cite{arm-neon}. These extensions utilize special vector registers to distribute the workload of said registers throughout the \acrshort{ALUs}.
+%% 
+%% 
+%% 
+%% Some solutions have been developed to overcome this limitation, focusing on vector-length agnostic code and working with variable-length registers.
+%% 
+%% 
 
 
 
-\section{ARM Scalable Vector Extention}
-\section{Data-Prefetching}
-\section{Stream Specialized Processor}
-\section{Stream Semantic Registers}
 
+%% ############################################################################
+%%  \section{Data-Prefetching}
+
+%%  Despite advancements in making processors faster, slowdowns can occur if the processor has to stall during data retrieval from memory. In such cases, the entire system's efficiency is compromised, highlighting the critical impact of memory access speed on overall performance.
+%%  
+%%  To address this concern, data prefetching has emerged as a strategy explored through software implementations, hardware implementations, and hybrid solutions that combine both methodologies.
+%%  
+%%  Prefetching based on differences in memory access sequences can be unreliable in detecting patterns because of aggressive optimizations such as out-of-order execution that can change the order of memory access. Due to this optimization, the sequence of memory addresses used to calculate the difference can be altered, leading to inaccurate predictions.
+%%  
+
+%%  \subsection{Complex Access Patterns}
+%%  Although memory data access occurs, in a lot of scenarios, in a "linear way", meaning that memory stores with a delta spacing of +1, some workloads can contain repeating multi-delta sequences, making it more difficult to predict and prefetch \cite{7856594}.
+%%  
+%%  An example of this type of workload is the Lattice Boltzmann Method (LBM), where memory access is made with the following sequence $(A, A-24, A+1, A-23, A+2, A-22, A+3 ...)$ \cite{7856594}. Further analysis of this sequence shows that the multi-delta sequence can be expressed as a multiple single delta sequence like $(-24, +25), (-24, +25)$ with the base address A changing. It can be even more simplified with a pattern of simply two $+1$ deltas starting on address $A$ and the other on address $A-24$.
+%%  
+%%  To achieve these patterns, a prefetcher would need the ability to track multiple streams within a physical page as well as compare the new access address with multiple prior addresses in a window, comparing $A$ and $A+1$.
+%%  
+%%  Some prefetchers that implement these features are the access map pattern matching (AMPM) prefetcher and the Variable Lenght Delta Prefetcher (VLDP)\cite{7856594}. Both work by analyzing the physical address of memory instead of using the program counter (PC) with their structures located outside the main core.
+%%  
+%%  Another very complicated memory access pattern to predict is the indirect memory access of the form $A[B[i]]$.  
+%%  
+%%  \subsection{Access Map Pattern Matching}
+%%  Whenever data access is requested in AMPM, a "map" of hot memory zones is created to build the pattern information of memory access. A fixed size of the address space defines the memory zones. The AMPM prefetcher stores the entries that correspond to each memory access on a memory access map table and maps it to a specific hot zone. On a memory access, the corresponding entry from the memory access map table is sent to the pattern-matching logic. The pattern-matching logic then generates prefetch requests and issues them to the memory subsystem. This behaviour is illustrated in Fig. \ref{fig:AMPM-overview}
+%%  
+%%  \begin{figure}[H]
+%%      \centering
+%%      \includegraphics[width=0.77\linewidth]{images/AMPM-Overview.pdf}
+%%      \caption{AMPM Structure Overview}
+%%      \label{fig:AMPM-overview}
+%%  \end{figure}
+%%  
+%%  Due to the nature of the history of this prefetcher, AMPM does not compute complex data patterns. Since this prefetcher is a most recent access store policy, the predicting capability is limited to simple repeating stride patterns, on top of that the AMPM needs a warm-up period before being able to make accurate predictions. 
+%%  
+%%  
+%%  \subsection{Variable Lenght Delta Predictor (VDLP)}
+%%  The VLDP overcomes some of the limitations of AMPM by maintaining a delta history buffer and multiple global delta predictions. The structure shown in Fig. \ref{fig:VLDP-structure} allows VLDP to make complex multi-delta access pattern predictions, which can extend beyond a single memory page. The use of multiple predictions indexed by varying lengths of deltas provides more accurate predictions as the length of the history matches increases.
+%%  
+%%  
+%%  \begin{figure}[H]
+%%      \centering
+%%      \includegraphics[width=0.77\linewidth]{images/VLDP-overview.pdf}
+%%      \caption{VDLP Structure Overview}
+%%      \label{fig:VLDP-structure}
+%%  \end{figure}
+%%  
+%%  
+%%  Results from \cite{7856594}, shows clear performance improvements of VLDP compared to similar prefetching approaches, achieving a 5.8\% improvement compared to AMPM across a series of test workloads.
+%%  
 % Data Streaming
 % Memory Vectorization

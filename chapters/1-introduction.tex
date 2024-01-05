@@ -3,18 +3,65 @@
 \chapter{Introduction}
 \label{chapter:introduction}
 
-\section{Motivation and Objectives}
-\section{Outline of Work}
+\section{Motivation}
+
+Technology is constantly evolving and requires faster and more efficient computing systems. In particular, some prominent areas like machine learning, deep learning, AI, and image and video processing are becoming increasingly important, satisfying the need to keep up with the demand and development of faster and more powerful computational infrastructures.
+
+One common way to enhance their performance is to increase the number of processing cores or elevate the clock speed. However, this brings with it the challenge of managing the additional energy and heat required for optimal operation.
+
+Alternatively, another strategy to achieve the overarching goal of improving system performance lies in enhancing the efficiency of its surrounding components. A significant factor contributing to performance limitations is the latency and insufficient throughput associated with memory access by the CPU. In domains where substantial amounts of data are fetched from memory and processed by the CPU, the associated time cost can be significant, leading to undesired CPU stalls and to an overall slowdown in performance. Addressing these challenges in data manipulation efficiency becomes pivotal for optimizing system performance.
+
+There is a lot of active research on the topic of reducing memory access latency. One approach to achieve this is prefetching. The system analyzes the memory access patterns and learns the behavior of memory access to fetch data before the CPU requires it for processing. There are various implementations of prefetching in both software and hardware. However, prefetching can cause cache pollution despite improving data access efficiency.
+
+Another possible solution for reducing memory access latency is to use data streaming. This technique is based on the use of prefetching capabilities, taking advantage of the memory access patterns and utilizing dedicated functional units for data streaming (engines). These engines mitigate the data fetching overhead through the use of buffering memories, allowing a seamless fetching of data. 
 
 
-Your introduction here...\\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    Stream Data Flow Accelerator is a state-of-the-art solution that uses an acceleration unit to offload some of the tasks related to data fetch and manipulation, utilizing stream structures. It also includes a specialized computation unit that operates over streams by defining a computation graph beforehand.\cite{8192490}
+%    
+%    
+%    
+%   
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-A demonstration of how to use acronyms and glossary:
 
-A \gls{MSc} entry.
+Nevertheless, most stream-based solutions often struggle to effectively exploit data parallelizable operations. By obtaining data preemptively through the use of pattern analysis, streams, and memory buffers, the data becomes available for computation earlier. This means that for repeatable workloads or tasks, such as loop operations across vectors or matrices, the use of Single Instructions Multiple Data (\acrshort{SIMD}) operations is highly effective and can significantly enhance the system's throughput.
 
-Second use: \gls{IST}.
+However while these operations can be useful to speed up certain applications, their use still has some limitations. For example, data being operated in parallel cannot be dependent on each other. Additionally, the speed gain from parallelizing operations can be compromised by memory limitations such as memory bandwidth, complex data pattern accesses, and conditional memory accesses. Therefore, using SIMD operations with certain applications may not always be possible or beneficial.
 
-Plurals: \glspl{MSc}.
+Many modern \acrfull{ISA} come equipped with extensions that allow for the use of \acrfull{SIMD} operations. Examples of such extensions are Intel's Advanced Vector eXtension (AVX) and the Streaming SIMD Extensions (SSE), and the ARM NEON vector extension \cite{arm-neon}. These extensions utilize special vector registers to distribute the workload of said registers throughout the \acrshort{ALUs}.
 
-A citation example \cite{nobody}
+One of the drawbacks of the aforementioned \acrshort{ISA} extensions is that the operations performed on vector registers are specific to a fixed vector size. This poses a problem because the compiled binaries become vector-length dependent. Therefore, using the same binary on different systems with different vector lengths becomes impossible without recompiling the program. 
+
+To remedy this, the AMR SVE and the RISC-V Vector Extention \acrshort{ISA} emerged, taking a different approach to vector length and elevating the abstraction of such hardware limitation, by only needing to known it at runtime. These implementations do not come without their problems, the most relevant one being the need for predicate and control instruction inside of loop iteration to disable/manipulate the size of the vector, leading to an increase in the number of instructions and consequently to a large overhead.
+
+
+The recently introduced Unlimited Vector Extension (UVE) \cite{uve-paper} \acrfull{ISA} also aims to address the previously mentioned challenge associated with vector size. It adopts the strategy of vector-length agnostic code, akin to ARM SVE and RISC-V Vector Extension. However, its approach to implementing the required instructions differs from other solutions, since it allows the configuration before the program loops, eliminating the need for control commands within the loop iteration and enhancing instruction efficiency.
+
+Moreover, UVE introduces a streaming engine that efficiently retrieves data by configuring complex access patterns. This feature enables \acrshort{SIMD} operations to achieve higher throughput, contributing to overall performance improvements.
+
+With increased expectations for better and faster hardware for contemporary application domains, more specialized methodologies need to be adopted by \acrfull{GPP} to improve computation systems, embracing at the same time the need for better data access efficiency.
+
+
+\section{Objectives}
+
+Despite the significant progress that was made through the study, development, and implementation of some of the aforementioned solutions, there is still room for improvement when talking about the performance and energy efficiency of modern computational systems. For this reason, continued research in these areas is crucial. 
+Propelled by the need for more progress, the objectives of this work are as follows:
+\begin{itemize}
+    \item Implement and integrate the streaming micro-architecture proposed by the Unlimited Vector Extension with Data Streaming Support in the System Verilog description of the CVA6 CORE-V 6-Stage CPU. 
+    \item Study the effect of reconfigurability of streaming engines for complex access patterns.
+    \item Evaluate, analyze, and compare the implemented system with other vector extensions and data streaming solutions, focusing on performance, footprint dimension, and energy efficiency.
+    \item Brief analysis of possible improvements to the Unlimited Vector Instruction Set Architecture.
+\end{itemize}
+
+The main reference work for my thesis will be the manuscript entitled "Unlimited Vector Extension With Data Streaming Support" \cite{uve-paper}. Additionally, I will be referring to the work done by Xavier Fernandes in his thesis titled "Data-Streaming Engine Architecture for the Unlimited Vector Extension".
+
+\section{Outline of PIC Report}
+
+As for the structure of this report, the following chapter starts by analyzing some of the technologies being researched and developed in the area of data streaming and vector extensions. Some projects described below focus more on the data streaming component like the \hyperref[label:stream_dataflow]{Stream Dataflow Accelerator} or the \hyperref[label:ssr]{Stream Semantic Registers}, while others focus on the processing of data in parallel through the use of vectors like the \hyperref[label:arm-sve]{Scalable Vector Extention} or the \hyperref[label:rvv]{RISC-V Vector extention}. 
+
+At the end of the state-of-the-art, the \hyperref[label:uve]{Unlimited Vector Extention with Data Streaming Support} will be described as a combined implementation of data streaming with vector extension. 
+
+The Third chapter provides an overview of the things that will be developed, implemented, tested, and analyze in the scope of this thesis. It begins with a brief description of the tools and technologies that will be used during the development of the thesis, followed by a description of the implementation of the Instruction Set Architectures extension, the \acrlong{UVE}, on RISC-V. The next section covers the necessary modifications to the CVA6 CPU system Verilog description. 
+This chapter will conclude with a discussion of the proposed test and analysis to be conducted with the final implementation.
+The final chapter will address the main conclusions of this document and will include a timeline chart, showing the proposed work to be done and their time frames.

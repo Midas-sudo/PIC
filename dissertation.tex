@@ -6,7 +6,7 @@
 % Advisors:
 %
 % ------------------------------------------
-\documentclass[10pt,twoside,openright,a4paper]{report}
+\documentclass[10pt,oneside,openright,a4paper]{report}
 \usepackage[utf8]{inputenc}
 
 % Set document margins to 1in in all sides
@@ -58,30 +58,28 @@
 
 \pagenumbering{roman}
 
-\if\includeAcknowledgments 1
+\if\includeAcknowledgments 0
 \input{acknowledgments/acknowledgments.tex}
 \NewPage
 \fi
 
 \include{abstract/abstract-en}
 \NewPage
-\include{abstract/abstract-pt}
-\NewPage
 
 % Table of contents
 \tableofcontents
 % A new page is necessary only if table of contents has an even number of pages
-\NewPage
+%\NewPage
 
 % List of tables
-\addcontentsline{toc}{chapter}{\listtablename}
-\listoftables
-\NewPage
+%\addcontentsline{toc}{chapter}{\listtablename}
+%\listoftables
+%\NewPage
 
 % List of figures
-\addcontentsline{toc}{chapter}{\listfigurename}
-\listoffigures
-\NewPage
+%\addcontentsline{toc}{chapter}{\listfigurename}
+%\listoffigures
+%\NewPage
 
 % List of acronyms
 \printglossary[type=\acronymtype]
@@ -90,6 +88,8 @@
 \pagenumbering{arabic}% Arabic page numbers (and reset to 1)
 
 \input{chapters/main.tex}
+
+\input{chapters/5-ganttchart}
 
 \bibliographystyle{ieeetr}
 \addcontentsline{toc}{chapter}{Bibliography}
@@ -100,8 +100,8 @@
 \input{appendix/main.tex}
 
 % Glossary and Acronym List
-\if\includeGlossary 1
-\printglossary
-\fi
+%\if\includeGlossary 1
+%\printglossary
+%\fi
 
 \end{document}
