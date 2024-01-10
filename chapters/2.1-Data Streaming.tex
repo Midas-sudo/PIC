@@ -132,25 +132,22 @@ The proposed \acrshort{ISA} comes with its limitations since the decoupling natu
 
 
 \subsubsection{Using Stream Information}
-Wang and Nowatzki (2019) \cite{8980305} also propose the exploitation of the stream information provided by the decoupled design of the presented implementation. Accordingly a prefetching technique and stream-aware cache bypass policies were also implemented leveraging such stream information.
+Wang and Nowatzki (2019) \cite{8980305} also propose the exploitation of the stream information provided by the decoupled design of the presented implementation. Accordingly a prefetching technique and stream-aware cache bypass policies were implemented leveraging such stream information.
 
-In what concerns the prefetching, the distance in which prefetching is made can highly impact the smooth operation of a cores' pipeline. In an ideal prefetcher, the required data would be provided whenever the corresponding load instruction is ready to be issued. This means that a sign of poor performance of the prefetcher could be falling behind on the data requests.
-
-The utilization of a FIFO allows for an even distribution of the unit across stream pseudo-registers. However, this can lead to uneven resource utilization. Hence, Wang and Nowatzki (2019) \cite{8980305} opted for a dynamic assignment policy. This policy assesses, through a counter, whether a stream pseudo-register is causing stalls. In such a situation, the prefetching distance is incremented until the load/store stall counter returns to a lower value.
+In what concerns the prefetching, the distance in which prefetching is made can highly impact the smooth operation of a cores' pipeline. In an ideal prefetcher, the required data would be provided whenever the corresponding load instruction is ready to be issued. This means that a sign of poor performance of the prefetcher could be falling behind on the data requests. For the monitoring and correct utilization of the resources of the processor, Wang and Nowatzki (2019) \cite{8980305} took the approach of implementing a set of counters that track the number of stalls that occur with each stream pseudo-register. These counters enable the pipeline to dynamically readjust the size distribution of the Load FIFO across stream pseudo-registers. This adjustment provides streams with increased available space, subsequently allowing the prefetching distance of specific streams to be incremented based on the rate at which data is being consumed.
 
 In the proposed implementation, the initial value of each stream pseudo-register length is defined in the configuration step with a default value. However, this could be further improved by defining a more personalized value during compilation.
 
-
-In memory requests with low temporal locality, the utilization of cache can become a problem and hurt the overall execution performance. In such cases, utilizing bypass policies can help. 
-Through the stream information provided by the systems (memory footprint, stream length, reuse distance etc),  it is possible to decide if utilizing cache bypassing would be beneficial.
-
-This technique would help avoid polluting the cache with data that would not be reused, as well as avoid unnecessary time wasted with tag lookup and MSHR allocation.
+Another technique implemented by Wang and Nowatzki (2019) \cite{8980305} that leverages the information given by the patterns defined by streams, is cache bypassing. In memory requests with low temporal locality, the utilization of cache can become a problem and hurt the overall execution performance. Through the stream information provided by the system (memory footprint, stream length, reuse distance etc), it is possible to decide whether a memory request should be made to the cache or bypass it completely and request the information directly to the memory system. This technique would help avoid polluting the cache with data that would not be reused, as well as avoid unnecessary time wasted with tag lookup and MSHR allocation.
 
 
 \subsubsection{Result Analysis}
 
-Wang and Nowatzki (2019) \cite{8980305} concluded through a series of workloads that their proposed decoupled-stream ISA extension show very promising results in terms of performance and energy consumption when compared with the baseline simulated 8-Way OOO processor. 
-With a 1.53x both in speedup and energy efficiency, it is possible to conclude that utilizing the benefits of stream-based prefetching, address computation decoupling, and stream-aware cache policies can lead to a faster, more specialized access and communication within the cache and memory hierarchy, albeit with certain limitations like the unknown length of patterns for stream configuration.
+Wang and Nowatzki (2019) \cite{8980305} concluded through a series of workloads that their proposed decoupled-stream ISA extension show very promising results in terms of performance and energy consumption when compared with the baseline simulated 8-Way OOO processor. The tests conducted were made to evaluate the impact of the improvements suggested by the authors, like the inclusion of streaming with prefetching, the utilization of a dynamic throttle of the prefetching distance, and the utilization of stream access information in cache bypassing policies.
+
+The implementation of just the streaming engine resulted in an overall gain of 1.20x in performance. Utilizing both the dynamic throttle (prefetching stall counters) and stream-aware cache policies pushed the gain value to 1.67x when compared with the baseline out-of-order core. In terms of energy efficiency, the implementation of the proposed full system resulted in an improvement of 1.53x compared to the baseline.
+
+Wang and Nowatzki (2019) \cite{8980305} concluded that utilizing the benefits of stream-based prefetching, address computation decoupling, and stream-aware cache policies can lead to a faster, more specialized access and communication within the cache and memory hierarchy, albeit with certain limitations like the problem of unknown length of patterns during stream configuration.
 
 Some further research topics like vector data manipulation could also be seen as a possible improvement to the described system leveraging parallel computation of data.
 
@@ -209,6 +206,8 @@ In case both conditions are true then the transaction is routed out of the core 
 
 The accesses initiated within the core and directed outward through the stream interfaces reach the data mover unit. This segment of the architecture, visible in Figure \ref{fig:ssr-data_mover} is tasked with accurately mapping the incoming accesses to the memory system. To execute this function, the data mover incorporates a set of lanes, each comprising a \textit{First-In-First-Out (FIFO)} queue buffer and an address generator unit (AGU). The AGU is responsible for associating each streamed access with the corresponding memory address, whether for reading or writing. Offloading the memory address generation outside of the main pipeline reduces the pressure caused by this type of function.
 
+The internal diagram of the AGU can be seen on the right of Figure \ref{fig:ssr-data_mover} and is based on AGU presented by Schuiki \textit{et al.} \cite{8502059}. It works through the configuration of the hardware loops ($L0$ to $L3$), which act as counters that iterate over the parameters of the stream access pattern and provide the values necessary for the address generation. 
+
 \begin{figure}[H]
 	\begin{center}
  		\includegraphics[width=0.87\linewidth]{images/ssr-data_mover.pdf}
@@ -219,7 +218,8 @@ The accesses initiated within the core and directed outward through the stream i
 
 For each processed stream, the AGU is configured in either reading mode, generating memory addresses, or writing mode, producing tags for each datum to be written. It's noteworthy that the processing of streams cannot be interleaved; thus, the same mode persists until the conclusion of the address pattern.
 
-A positive aspect arising from the previously mentioned constraint is the proactive capability of the data mover to perform memory reads using the configured hardware loop counters (L0 to L3) present in the address generation unit, as depicted on the right of Figure \ref{fig:ssr-data_mover}, this hardware loop counters are based on similar implementation of address generation presented by Schuiki \textit{et al.} \cite. This behavior facilitates quicker access to data, as whenever the processor decides to read from an SSR, the data is already available. This stands in contrast to normal data accesses where each request needs to be individually made and awaited.
+
+A positive aspect arising from the previously mentioned constraint is the proactive capability of the data mover to perform memory reads using the defined configuration. This behavior facilitates quicker access to data, as whenever the processor decides to read from an SSR, the data is already available. This stands in contrast to normal data accesses, where each request needs to be individually made and awaited.
 
 Unfortunately, due to the design of the data mover and the pro-active read, memory incoherence could occur since a lane could have read a value from memory and placed it in the \textit{FIFO} before the other lane could have updated the same memory location with a new value, for this reason, to avoid data races write operation cannot initiate on a section of memory that has been set to read from.
 
