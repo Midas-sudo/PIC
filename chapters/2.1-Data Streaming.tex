@@ -68,12 +68,12 @@ For the correct operation of the stream-dataflow micro-architecture, three main 
 
 \subsubsection{Result Analysys}
 
-To assess the goal of designing an accelerator that could replace a domain-specific implementation while maintaining generality, Nowatzki \textit{et al.} \cite{8192490} conducted a series of workloads from the MachSuite. For each test, they utilized the \textit{Softbrain} implementation with a max of 20 DFG instructions and a customized Aladdin ASIC with its implementation generated for each application. The choosing of the ASIC Design was done through the analysis of multiple implementations in order to find the one closest to the \textit{Softbrain} performance while minimizing power, area, and execution time.
+To assess the goal of designing an accelerator that could replace a domain-specific implementation while maintaining generality, Nowatzki \textit{et al.} \cite{8192490} conducted a series of workload tests from the MachSuite. Each test was run by a \textit{Softbrain} implementation, configured to a max of 20 DFG instructions, and a customized Aladdin ASIC with its implementation generated for each application. %The choosing of the ASIC Design for each test was done through the analysis of multiple implementations in order to find the one closest to the \textit{Softbrain} performance while minimizing power, area, and execution time.
 The comparison focused on their power consumption, performance, energy efficiency, and area.
 
-Both the Softbrain and the ASICs implementations showed 1-7x speedup across all workloads when compared with a SandyBridge OOO Quad-Core, keeping on par with one another. In terms of power and energy efficiency, the \textit{Softbrain} accelerator showed lower values, however, not far from the ones obtained for the ASICs implementations. 
+Both the Softbrain and the ASIC implementations showed 1-7x speedup gains across all workloads when compared with a SandyBridge OOO Quad-Core, keeping on par with one another. In terms of power and energy efficiency, the \textit{Softbrain} accelerator showed worse results than the ASICs implementations, however not far behind it. 
 
-On area comparison, due to the nature of the custom implementation on the ASIC, the \textit{Softbrain} showed a bigger area use however, since \textit{Softbrain} is programmable on runtime and able to run all workloads, from another perspective, \textit{Softbrain} is area efficient since designing a system for the complete benchmarks performed would require 2.4x the area of \textit{Softbrain}.
+On area comparison, the \textit{Softbrain} showed a bigger area use however, since \textit{Softbrain} is programmable on runtime and able to run all workloads, it is possible to advocate that the \textit{Softbrain} implementation is more area efficient than the ASIC implementation since designing a system for the full set of benchmarks performed would require 2.4x the area of \textit{Softbrain}.
 
 Nowatzki \textit{et al.} \cite{8192490} conclude by stating that the developed work demonstrates the potential of designing programmable/configurable architecture that leverage the advantages of streaming structures, something on which my thesis will also focus.
 
@@ -132,13 +132,13 @@ The proposed \acrshort{ISA} comes with its limitations since the decoupling natu
 
 
 \subsubsection{Using Stream Information}
-Wang and Nowatzki (2019) \cite{8980305} also propose the exploitation of the stream information given by the decoupled design of the implementation. A prefetching technique and stream-aware cache bypass policies were also implemented leveraging stream information.
+Wang and Nowatzki (2019) \cite{8980305} also propose the exploitation of the stream information provided by the decoupled design of the presented implementation. Accordingly a prefetching technique and stream-aware cache bypass policies were also implemented leveraging such stream information.
 
-In prefetching, the distance in which prefetching is made can highly impact the smooth operation of a cores' pipeline. In an ideal prefetcher, data would be provided whenever an instruction is ready to be issued, this means that a sign of poor performance of the prefetcher could be falling behind on the data requests.
+In what concerns the prefetching, the distance in which prefetching is made can highly impact the smooth operation of a cores' pipeline. In an ideal prefetcher, the required data would be provided whenever the corresponding load instruction is ready to be issued. This means that a sign of poor performance of the prefetcher could be falling behind on the data requests.
 
-The utilization of a FIFO allows for an even distribution of the unit across stream pseudo-registers, however, this can lead to uneven resource utilization. Hence, Wang and Nowatzki (2019) \cite{8980305} opted for a dynamic assignment policy. This policy assesses, through a counter, whether a stream pseudo-register is causing stalls. In such a situation, the prefetching distance is incremented until the counter returns to a lower threshold value.
+The utilization of a FIFO allows for an even distribution of the unit across stream pseudo-registers. However, this can lead to uneven resource utilization. Hence, Wang and Nowatzki (2019) \cite{8980305} opted for a dynamic assignment policy. This policy assesses, through a counter, whether a stream pseudo-register is causing stalls. In such a situation, the prefetching distance is incremented until the load/store stall counter returns to a lower value.
 
-In the proposed implementation, the initial value of each stream pseudo-register length is defined in the configuration step with a default value, however, this could be further improved by defining a more personalized value during compilation.
+In the proposed implementation, the initial value of each stream pseudo-register length is defined in the configuration step with a default value. However, this could be further improved by defining a more personalized value during compilation.
 
 
 In memory requests with low temporal locality, the utilization of cache can become a problem and hurt the overall execution performance. In such cases, utilizing bypass policies can help. 
@@ -219,7 +219,7 @@ The accesses initiated within the core and directed outward through the stream i
 
 For each processed stream, the AGU is configured in either reading mode, generating memory addresses, or writing mode, producing tags for each datum to be written. It's noteworthy that the processing of streams cannot be interleaved; thus, the same mode persists until the conclusion of the address pattern.
 
-A positive aspect arising from the previously mentioned constraint is the proactive capability of the data mover to perform memory reads using the configured loop counters (L0 to L3) present in the address generation unit, as depicted on the right of Figure \ref{fig:ssr-data_mover}. This behavior facilitates quicker access to data, as whenever the processor decides to read from an SSR, the data is already available. This stands in contrast to normal data accesses where each request needs to be individually made and awaited.
+A positive aspect arising from the previously mentioned constraint is the proactive capability of the data mover to perform memory reads using the configured hardware loop counters (L0 to L3) present in the address generation unit, as depicted on the right of Figure \ref{fig:ssr-data_mover}, this hardware loop counters are based on similar implementation of address generation presented by Schuiki \textit{et al.} \cite. This behavior facilitates quicker access to data, as whenever the processor decides to read from an SSR, the data is already available. This stands in contrast to normal data accesses where each request needs to be individually made and awaited.
 
 Unfortunately, due to the design of the data mover and the pro-active read, memory incoherence could occur since a lane could have read a value from memory and placed it in the \textit{FIFO} before the other lane could have updated the same memory location with a new value, for this reason, to avoid data races write operation cannot initiate on a section of memory that has been set to read from.
 

@@ -33,10 +33,10 @@ Many modern \acrfull{ISA} come equipped with extensions that allow for the use o
 
 One of the drawbacks of the aforementioned \acrshort{ISA} extensions is that the operations performed on vector registers are specific to a fixed vector size. This poses a problem because the compiled binaries become vector-length dependent. Therefore, using the same binary on different systems with different vector lengths becomes impossible without recompiling the program. 
 
-To remedy this, the AMR SVE and the RISC-V Vector Extention \acrshort{ISA} emerged, taking a different approach to vector length and elevating the abstraction of such hardware limitation, by only needing to known it at runtime. These implementations do not come without their problems, the most relevant one being the need for predicate and control instruction inside of loop iteration to disable/manipulate the size of the vector, leading to an increase in the number of instructions and consequently to a large overhead.
+To address this limitation, the Arm Scalable Vector Extension (SVE) and the RISC-V Vector Extension ISA emerged, adopting a distinct approach to vector length and elevating the abstraction of such hardware constraints by only requiring knowledge of it at runtime. However, these implementations are not without challenges. The most notable issue is the necessity for predicate and control instructions within loop iterations to disable or manipulate the size of the vector. This can result in an increased number of instructions, possibly leading to significant overhead.
 
 
-The recently introduced Unlimited Vector Extension (UVE) \cite{uve-paper} \acrfull{ISA} also aims to address the previously mentioned challenge associated with vector size. It adopts the strategy of vector-length agnostic code, akin to ARM SVE and RISC-V Vector Extension. However, its approach to implementing the required instructions differs from other solutions, since it allows the configuration before the program loops, eliminating the need for control commands within the loop iteration and enhancing instruction efficiency.
+The recently proposed Unlimited Vector Extension (UVE) \cite{uve-paper} \acrfull{ISA} also aims to address the previously mentioned challenge associated with vector size. It adopts the strategy of vector-length agnostic code, akin to ARM SVE and RISC-V Vector Extension. However, its approach to implementing the required instructions differs from other solutions, since it allows the configuration before the program loops, eliminating the need for control commands within the loop iteration and enhancing instruction efficiency.
 
 Moreover, UVE introduces a streaming engine that efficiently retrieves data by configuring complex access patterns. This feature enables \acrshort{SIMD} operations to achieve higher throughput, contributing to overall performance improvements.
 
@@ -48,10 +48,9 @@ With increased expectations for better and faster hardware for contemporary appl
 Despite the significant progress that was made through the study, development, and implementation of some of the aforementioned solutions, there is still room for improvement when talking about the performance and energy efficiency of modern computational systems. For this reason, continued research in these areas is crucial. 
 Propelled by the need for more progress, the objectives of this work are as follows:
 \begin{itemize}
-    \item Implement and integrate the streaming micro-architecture proposed by the Unlimited Vector Extension with Data Streaming Support in the System Verilog description of the CVA6 CORE-V 6-Stage CPU. 
+    \item Implement and integrate the streaming micro-architecture proposed by the Unlimited Vector Extension with Data Streaming Support in the System Verilog hardware description of the CVA6 CORE-V 6-Stage CPU. 
     \item Study the effect of reconfigurability of streaming engines for complex access patterns.
     \item Evaluate, analyze, and compare the implemented system with other vector extensions and data streaming solutions, focusing on performance, footprint dimension, and energy efficiency.
-    \item Brief analysis of possible improvements to the Unlimited Vector Instruction Set Architecture.
 \end{itemize}
 
 The main reference work for my thesis will be the manuscript entitled "Unlimited Vector Extension With Data Streaming Support" \cite{uve-paper}. Additionally, I will be referring to the work done by Xavier Fernandes in his thesis titled "Data-Streaming Engine Architecture for the Unlimited Vector Extension".
@@ -62,6 +61,5 @@ As for the structure of this report, the following chapter starts by analyzing s
 
 At the end of the state-of-the-art, the \hyperref[label:uve]{Unlimited Vector Extention with Data Streaming Support} will be described as a combined implementation of data streaming with vector extension. 
 
-The Third chapter provides an overview of the things that will be developed, implemented, tested, and analyze in the scope of this thesis. It begins with a brief description of the tools and technologies that will be used during the development of the thesis, followed by a description of the implementation of the Instruction Set Architectures extension, the \acrlong{UVE}, on RISC-V. The next section covers the necessary modifications to the CVA6 CPU system Verilog description. 
-This chapter will conclude with a discussion of the proposed test and analysis to be conducted with the final implementation.
+The third chapter provides an overview of the things that will be developed, implemented, tested, and analyzed in the scope of this thesis. It begins with a brief description of the tools and technologies that will be used during the development of the thesis, followed by a description of the implementation of the Instruction Set Architectures extension, the \acrlong{UVE}, on RISC-V. The next section covers the necessary modifications to the CVA6 CPU system Verilog description. This chapter will conclude with a discussion of the proposed test and analysis to be conducted with the final implementation.
 The final chapter will address the main conclusions of this document and will include a timeline chart, showing the proposed work to be done and their time frames.
