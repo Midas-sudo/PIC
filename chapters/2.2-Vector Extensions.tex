@@ -105,7 +105,7 @@ The \acrlong{RVV} introduces a collection of 32 variable-length vector registers
 
 The manipulation of vectors is facilitated through the implementation of a new set of instructions introduced with the \acrshort{RVV} extension. This extension supports typical arithmetic operations for both fixed and floating-point data, along with reduction operations such as sum, max, and min. Additionally, certain instructions can be customized through the use of masking, allowing the disabling or enabling of specific vector elements during processing.
 
-In Fig. \ref{fig:uve-comparison}, an example of a simple saxpy application compiled with the RVV extension is illustrated. Throughout the loop iteration, vector registers used to store data and vector-specific instructions to manipulate the vectors. At the beginning of the loop, an instruction ($vsertvli$) is utilized to define the characteristics of the vector, including its length and data type.
+In Fig. \ref{fig:uve-comparison}, an example of a simple saxpy application compiled with the RVV extension is illustrated. Throughout the loop iteration, vector registers are used to store data and vector-specific instructions to manipulate the vectors. At the beginning of the loop, an instruction ($vsertvli$) is utilized to define the characteristics of the vector, including its length and data type.
 
 
 
@@ -129,9 +129,14 @@ The envisioned \acrshort{ISA} strives to mitigate latencies commonly associated 
 
 \subsubsection{UVE Features}
 
+
+Fig. \ref{fig:uve-comparison} illustrates a comparison of the compiled code for a saxpy application targeting ARM SVE, RVV, and UVE. Initial observations suggest that all three vector extensions yield instruction codes of similar sizes. However, upon closer examination, the loop section of each implementation varies, with UVE exhibiting the smallest number of instructions per loop iteration.
+
+Both ARM SVE and RVV need the inclusion of configuration instructions within their loop iterations, along with memory fetching instructions. This results in a higher number of executed instructions compared to UVE. UVE mitigates this issue by utilizing predefined stream registers, requiring only an initial configuration outside the loop iteration. This approach minimizes the number of instructions, leaving the loop solely for the actual computations.
+
 \begin{figure}[H]
     \centering
-    \includegraphics[width=\linewidth]{images/UVE-Comparison.pdf}
+    \includegraphics[width=.9\linewidth]{images/UVE-Comparison.pdf}
     \caption{Assembly code comparison between ARM SVE, RVV, and UVE - Figure from \cite{uve-paper}}
     \label{fig:uve-comparison}
 \end{figure}
@@ -145,7 +150,7 @@ The main difference of this solution from other recently developed SIMD solution
 
 
 
-\item[]  \Tbullet{F3}{Simplified Vectorization} The use of memory access pattern descriptors allows the Streaming Engine to anticipate all non-coalesced accesses as linear patterns and deliver them to the processing unit. This leads to a simplified vectorization since memory is always aligned from the execution pipeline point of view - see Fig. \ref{fig:uve-mem-access}. 
+\item[]  \Tbullet{F3}{Simplified Vectorization} The use of memory access pattern descriptors allows the Streaming Engine to anticipate all non-coalesced accesses as linear patterns and deliver them to the processing unit. The examples shown in Fig. \ref{fig:uve-mem-access} illustrate this principle since the code to run any of the access patterns will be the same from the execution pipeline point of view. The differentiating fact occurs only in the configuration part of the code.
 
 
 \item[]  \Tbullet{F4}{Implicit Load/Store} Since the streams are described in the loop preamble, the indexing instructions can be removed, meaning that all explicit loads and stores are associated with active streams and different vector registers.
@@ -156,7 +161,7 @@ Besides the mentioned features, UVE is also register-size agnostic, similar to S
 
 \begin{figure}[H]
 	\begin{center}
- 		\includegraphics[width=\linewidth]{images/UVE-pseudo-code.pdf}
+ 		\includegraphics[width=.9\linewidth]{images/UVE-pseudo-code.pdf}
  		\caption{UVE pseudo-code implementation for the computation of the maximum
 across the rows on three possible matrices: (A) full matrix, (B) lower triangular
 matrix, and (C) full matrix with pointers to an array - Figure adapted from \cite{uve-paper}}
