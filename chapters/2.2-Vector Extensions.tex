@@ -29,7 +29,7 @@ Figure \ref{fig:arm-sve-assembly} illustrates a step-by-step example of a Daxpy 
 
 Something similar happens in the 256-bit vector configuration. However, the initial comparison generates a predicate with the last position being false. This means the vector won't be utilized in full, and the next predicated instructions to execute should only compute three values.
 
-SVE also includes in its extended instruction set a family of \textit{while} instructions that operate by populating a new predicate through the use of a scalar counter. The value of this stride can be incremented not only by the value of the total number of elements in the system vector but also through more complex increment functions like incrementing by the number of active lanes, or the largest multiple of a data element on a vector, allowing for a powerful data access and manipulation. 
+SVE also includes in its extended instruction set a family of \textit{while} instructions that operate by populating a new predicate through the use of a scalar counter. The value of this stride can be incremented not only by the value of the total number of elements in the system vector but also through more complex increment patterns like the number of active lanes, or the largest multiple of a data element on a vector, allowing for a powerful data access and manipulation. 
 
 Due to this nature of vector-length-agnostic programming, situations that require vector initialization can become more difficult. To address this complexity, the SVE extension incorporates a set of instructions capable of dynamically generating vector initialization during runtime. This dynamic approach is particularly useful as it adapts to pattern initializations, allowing for flexibility and efficiency in vector initialization processes.
 
@@ -43,7 +43,7 @@ Some examples of specific vector initialization are as follows:
 
 Another implemented feature in ARM SVE is the ability to do operations across lanes of a vector, essentially taking an operation and applying it to every element of the vector, for example, a sum, a bitwise-and, etc. 
 
-Designing a program with these intrinsics in mind allows for better performance. Fig. \ref{fig:horizontal-reductions} shows the compiled code of a sum of a multiplication of two vectors with and without intrinsics. Both compiled versions of code execute at the beginning of each loop iteration the load of the values of $a$ and $b$ (green instructions), the differences occur on the computation part of each iteration. In the ARM SVE version without intrinsics (Fig. \ref{fig:horizontal-reductions}.C), the loaded vectors are multiplied, and the result is stored in a vector (purple instruction) following that instruction, a sum of values occurs by adding each entry of the vector to the register $d0$ this leads to the increase of the number of operations that occur per iteration.
+Designing a program with these intrinsics in mind allows for better performance. Fig. \ref{fig:horizontal-reductions} shows the compiled code of a sum of a multiplication of two vectors with and without intrinsics. Both compiled versions of code execute, at the beginning of each loop iteration, the load of the values of $a$ and $b$ (green instructions), the differences occur on the computation part of each iteration. In the ARM SVE version without intrinsics (Fig. \ref{fig:horizontal-reductions}.C), the loaded vectors are multiplied, and the result is stored in a vector (purple instruction) following that instruction, a sum of values occurs by adding each entry of the vector to the register $d0$ this leads to the increase of the number of operations that occur per iteration.
 
 In the ARM SVE version with intrinsics (Fig. \ref{fig:horizontal-reductions}.D), a horizontal reduction instruction is used at the end, meaning that during the loop iterations, it is more advantageous to multiply the vectors and add the result to third temporary vector (yellow instruction - fmla). The advantage comes from the fact that the instruction can happen across the vector entries simultaneously, resulting in a lighter computational pressure when compared with the previously compiled code. To achieve the same final result at the end of the execution, the horizontal reduction sums the entries of the final resulting vector.
 
@@ -70,9 +70,9 @@ To avoid the aforementioned problem, speculative vectorization can be utilized. 
 This feature facilitates the vectorization of uncounted loops with break conditions without the need for explicit size specification. Figure \ref{fig:ffr-example} illustrates the utilization of a memory-probing instruction, the \textit{LDFF1D}, within an uncounted loop, and will be explained in the following paragraphs.
 
 
-During the initial iteration of the probing instruction, all memory entries are examined, as the P1 predicate is initialized as entirely true. The resulting Forwarding Flag Register (FFR) signifies that data on the initial 2 entries of the memory can be accurately loaded, given the presence of correct data.
+During the initial iteration of the probing instruction, all memory entries are examined, as the P1 predicate is initialized as entirely true. The resulting Forwarding Flag Register (FFR) signifies that data on the initial 2 entries of the memory can be loaded, given the presence of valid data.
 
-In the subsequent iteration, the P1 predicate register is modified to turn each entry false where the FFR indicates true. In this specific example, this adjustment ensures that the next probing instruction will disregard the first two entries of the vector. The probing instruction then generates a new FFR, and as its first entry is false, it triggers an operating system trap, indicating that the end of the vector has been reached.
+In the subsequent iteration, the P1 predicate register is modified to turn each entry false where the FFR indicates true. In this specific example, this adjustment ensures that the next probing instruction will disregard the first two entries of the vector. The probing instruction then generates a new FFR, and since its first entry is false, it triggers an operating system trap, indicating that the end of the vector has been reached.
 
 
 
@@ -89,14 +89,14 @@ Nevertheless, while this feature effectively addresses the challenge posed by an
 \subsubsection{Result Analysis}
 
  The authors of ARM SVE \cite{arm-paper} conducted a series of workloads in 4 different configurations of the same generic medium-sized out-of-order microprocessor, one without the implementation of SVE, and three implementations with SVE and where the vector size was changed to 128-, 256- or 512-bit vector length.
-The overall results of the SVE implementations showed significant speedups, with workloads achieving 3x, 5x and 7.5 gains for the SVE 128-bit, SVE 256-bit, and SVE 512-bit implementation, respectively, when compared with the non-SVE implementation. Some workload tests presented no speedup due to the nature of the test since they do not benefit from vectorization, so performance was very similar between the four configurations.
+The overall results of the SVE implementations showed significant speedups, with workloads achieving 3x, 5x and 7.5x gains for the SVE 128-bit, SVE 256-bit, and SVE 512-bit implementation, respectively, when compared with the non-SVE implementation. Some workload tests presented no speedup due to the nature of the test since they do not benefit from vectorization, so performance was very similar between the four configurations.
 
 
 
 \subsection{RISC-V Vector Extention (RVV)}
 \label{label:rvv}
 
-Just like the ARM Scalable Vector Extension (SVE), the \acrfull{RVV} adopts an \acrfull{ISA} that centers around a vector-length-agnostic programming model. \acrshort{RVV} operations distinguish themselves solely based on vector-vector and vector-scalar distinctions, considering signed and unsigned types, without specifying element lengths. Consequently, the element length becomes a dynamic parameter in this context. Moreover, \acrshort{RVV} allows the utilization of only a segment of a vector register or even a combination of multiple vector registers, introducing the necessity for dynamic parameters in such scenarios.
+Just like the ARM Scalable Vector Extension (SVE) \cite{arm-paper}, the \acrfull{RVV} \cite{RVV} adopts an \acrfull{ISA} that centers around a vector-length-agnostic programming model. \acrshort{RVV} operations distinguish themselves solely based on vector-vector and vector-scalar distinctions, considering signed and unsigned types, without specifying element lengths. Consequently, the element length becomes a dynamic parameter in this context. Moreover, \acrshort{RVV} allows the utilization of only a segment of a vector register or even a combination of multiple vector registers, introducing the necessity for dynamic parameters in such scenarios.
 
 
 The \acrlong{RVV} introduces a collection of 32 variable-length vector registers and 7 context and status registers (CSRs). These additional CSRs are integrated into the base scalar RISC-V ISA and serve the purpose of storing the vector configuration of the currently executing application. Among the configurations maintained by these CSRs are the vector length, data type, and the starting position of the vector.
@@ -132,7 +132,7 @@ The envisioned \acrshort{ISA} strives to mitigate latencies commonly associated 
 
 Fig. \ref{fig:uve-comparison} illustrates a comparison of the compiled code for a saxpy application targeting ARM SVE, RVV, and UVE. Initial observations suggest that all three vector extensions yield instruction codes of similar sizes. However, upon closer examination, the loop section of each implementation varies, with UVE exhibiting the smallest number of instructions per loop iteration.
 
-Both ARM SVE and RVV need the inclusion of configuration instructions within their loop iterations, along with memory fetching instructions. This results in a higher number of executed instructions compared to UVE. UVE mitigates this issue by utilizing predefined stream registers, requiring only an initial configuration outside the loop iteration. This approach minimizes the number of instructions, leaving the loop solely for the actual computations.
+Both ARM SVE and RVV need the inclusion of configuration instructions within their loop iterations, along with memory fetching instructions. This results in a higher number of executed instructions compared to UVE. UVE mitigates this issue by utilizing preconfigured stream registers, requiring only an initial configuration outside the loop iteration. This approach minimizes the number of instructions, leaving the loop solely for the actual computations.
 
 \begin{figure}[H]
     \centering
@@ -146,11 +146,11 @@ The main difference of this solution from other recently developed SIMD solution
 \item[]  \Tbullet{F1}{Decoupled Memory Access} The ability to decouple the memory accesses from the computation part by streaming the data directly to the register, allowing the occurrence of loads/stores in parallel with the data manipulation, thus reducing the memory access latency.
 
 
-\item[]  \Tbullet{F2}{Indexing-free Loops} By describing the load/store patterns in advance, it allows minimizing the number of instructions related to memory indexing, reducing the pressure on the processor pipeline (see Fig.\ref{fig:uve-comparison}.D). 
+\item[]  \Tbullet{F2}{Indexing-free Loops} By describing the load/store patterns in advance, it allows minimizing the number of instructions related to memory indexing, reducing the pressure on the processor pipeline. 
 
 
 
-\item[]  \Tbullet{F3}{Simplified Vectorization} The use of memory access pattern descriptors allows the Streaming Engine to anticipate all non-coalesced accesses as linear patterns and deliver them to the processing unit. The examples shown in Fig. \ref{fig:uve-mem-access} illustrate this principle since the code to run any of the access patterns will be the same from the execution pipeline point of view. The differentiating fact occurs only in the configuration part of the code.
+\item[]  \Tbullet{F3}{Simplified Vectorization} The use of memory access pattern descriptors allows the Streaming Engine to anticipate all non-coalesced accesses as linear patterns and deliver them to the processing unit. The examples shown in Fig. \ref{fig:uve-mem-access} illustrate this principle since the code to run any of the access patterns will be the same from the execution pipeline point of view. The differentiating factors occurs only in the configuration part of the code.
 
 
 \item[]  \Tbullet{F4}{Implicit Load/Store} Since the streams are described in the loop preamble, the indexing instructions can be removed, meaning that all explicit loads and stores are associated with active streams and different vector registers.
@@ -172,7 +172,7 @@ matrix, and (C) full matrix with pointers to an array - Figure adapted from \cit
 
 \subsubsection{Microarchiteture Extension}
 
-In order to decouple the memory accesses the \acrshort{UVE} implementation proposed by, Domingos \textit{et al.} \cite{uve-paper} assumed the incorporation of a streaming engine in the microarchitecture of a CPU core. Adding such a feature requires the modification of other preexisting components, like the instruction decoder (to support SIMD operations as well as the streams configuration, control, and manipulation instructions)  modifying the reorder buffer to enable the renaming of vector registers and streams, allowing for speculative stream configuration, and lastly, add a new execution unit on the execution stage to process all the stream manipulating instructions. The proposed changes and their placement can be seen in Fig. \ref{fig:uve-arch}.
+In order to decouple the memory accesses the \acrshort{UVE} implementation proposed by, Domingos \textit{et al.} \cite{uve-paper} assumed the incorporation of a streaming engine in the microarchitecture of a CPU core. Adding such a feature requires the modification of other preexisting components, like the instruction decoder (to support SIMD operations as well as the streams configuration, control, and manipulation instructions), modifying the reorder buffer to enable the renaming of vector registers and streams, allowing for speculative stream configuration, and lastly, add a new execution unit on the execution stage to process all the stream manipulating instructions. The proposed changes and their placement can be seen in Fig. \ref{fig:uve-arch}.
 
 \begin{figure}[H]
 	\begin{center}
@@ -231,7 +231,7 @@ As depicted by Fig. \ref{fig:stream-descriptors}.A1, A2, A3, all three descripto
 \subsubsection{ISA Extension}
 To support the added functionalities of the streaming data structures and the use/manipulation of SIMD vector operations, the ISA needs to be extended with the following type of instruction: 
 \begin{itemize}
-    \item \textbf{Stream configurations}, as the name implies, these instructions are responsible for encoding the descriptors/modifiers described above, controlling the behavior of the streaming engine. 
+    \item \textbf{Stream configurations} instructions are responsible for encoding the descriptors/modifiers described above, controlling the behavior of the streaming engine. 
 
     \item \textbf{Stream control} instructions enable the control of streams and allow vector registers to stop/restore momentarily. This behavior control enables the execution of multiple processes without interfering with stream configurations.
 

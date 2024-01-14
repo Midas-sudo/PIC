@@ -14,7 +14,7 @@ The CVA6 processor is a simple 6-stage, single-issue CPU that implements the RIS
 
 To enhance the \acrfull{IPC} rate, the CPU incorporates a scoreboard mechanism, which aids in mitigating the latency of the data RAM (cache) by concurrently executing data-independent instructions, and committing the data for the load store unit (LSU).
 
-The CPU's cache module comprises two types of L1 cache: the data cache on the execution state (\textit{D\$}) and the instruction cache on the frontend part (\textit{I\$}). Both of these units provide flexibility in terms of size, ranging from \textit{0 Kbyte (no cache)} to \textit{32 Kbytes}, with implementation options of 4, 8, or 16 ways (it's important to note that certain combinations may not be feasible). Additionally, these units can be configured with regard to store policies and performance counters.
+The CPU's cache module comprises two types of L1 cache: the data cache on the execution state (\textit{D\$}) and the instruction cache on the frontend part (\textit{I\$}). Both of these units provide flexibility in terms of size, ranging from \textit{0 Kbyte (no cache)} to \textit{32 Kbytes}, with implementation options of 4, 8, or 16 ways (it's important to note that certain combinations may not be configurable). Additionally, these units can be configured with regard to store policies and performance counters.
 
 \begin{figure}[H]
     \centering
@@ -25,7 +25,7 @@ The CPU's cache module comprises two types of L1 cache: the data cache on the ex
 
 In addition to the cache memory, the CVA6 processor contains 2 Register File units, one for reading present on the issue stage of the pipeline and one for writing located in the commit stage. These units will be crucial components to alter and adapt for the implementation of the streaming engine.
 
-The flow of this pipeline starts in the frontend section where the \acrfull{PC} is updated according to the execution signals. These signals can indicate a normal advance across the executing process instructions or a modification according to branch prediction information, exceptions, or pipeline flushes. The instructions are then translated from the \acrshort{PC} in the instruction fetch section of the frontend, and stored on the instruction queue. In the instruction decoding stage, an instruction is taken from the queue. It realigns, decompresses, and decodes the instruction, passing it to the issue stage, where it will await the availability of its operands. Execution is made out-of-order in the execution stage, which is possible thanks to the \acrfull{ROB} and scoreboard in the commit stage. This last stage uses the information stored in the \acrshort{ROB} in order to commit the instructions in the order in which they were issued, and the register files and data held in the cache are written to memory.
+The flow of this pipeline starts in the frontend section where the \acrfull{PC} is updated according to the execution signals. These signals can indicate a normal advance across the executing process instructions or a modification according to branch prediction information, exceptions, or pipeline flushes. The instructions are then translated from the \acrshort{PC} in the instruction fetch section of the frontend, and stored on the instruction queue. In the instruction decoding stage, an instruction is taken from the queue. It realigns, decompresses, and decodes the instruction, passing it to the issue stage, where it will await the availability of its operands. Execution is made out-of-order in the execution stage, which is possible thanks to the \acrfull{ROB} and scoreboard in the commit stage. This last stage uses the information stored in the \acrshort{ROB} to commit the instructions and any possible produced data in the order in which they were issued.
 
 
 Studies conducted by Zaruba and Luca Benini \cite{8777130} using a hardware implementation of the CVA6 processor, revealed that using instructions extensions like SIMD on the CVA6 architecture improves its power em efficiency when comparing it to a base-line implementation of the processor running at higher frequencies. This can indicate that the features proposed with UVE and streaming support will most likely bring gains to the CVA6 overall performance.
@@ -39,7 +39,7 @@ The expandable nature and simple design of this 6-stage CPU make it the perfect 
 
 \subsection{Environment Setup and Preliminary Work}
 
-Prior to starting the implementation of the Unlimited Vector Extension (UVE) and streaming engine in the CVA6 CPU architecture, the initial step involved configuring a working environment.
+Prior to starting the implementation of the Unlimited Vector Extension (UVE) and streaming engine in the CVA6 CPU architecture, a first step had to be made that involved configuring a working environment.
 
 In order to adapt the original CVA6 architecture to support the Unlimited Vector Extension (UVE) and to integrate a streaming engine in the CVA6 CPU architecture, a Linux environment had to be configured with the correct set of tools.  This task was undertaken during the initial stages of the 2nd Cycle Integrated Project in Electrical and Computer Engineering. It encompassed the setup of the following tools:
 \begin{itemize}
@@ -50,7 +50,7 @@ In order to adapt the original CVA6 architecture to support the Unlimited Vector
 \end{itemize}
 
 
-Setting up this environment turned out to be more intricate than initially anticipated. After a successful installation and configuration of all the tools were achieved, some simple modifications and tests were made to the CVA6 architecture and the RISC-V \acrshort{ISA} to validate that the configuration of the environment was correct,.
+Setting up this environment turned out to be more intricate than initially anticipated but after a successful installation and configuration of all the tools were achieved, some simple modifications and tests were made to the CVA6 architecture and the RISC-V \acrshort{ISA} to validate that the configuration of the environment was correct,.
 
 These modifications included introducing a set of new custom instructions in the RISC-V ISA and modifying the CVA6 CPU architecture to integrate these instructions into the decoding unit of the CPU. This extension enabled the decoding unit to process the new instructions and appropriately dispatch operations to the execution stage of the processor. Additionally, new functional units were implemented to effectively handle the operations associated with these custom instructions.
 
@@ -61,7 +61,7 @@ This initial work served as a simplified precursor to the more extensive develop
 The implementation of the streaming engine on the CVA6 processor is likely to undergo several evolutions throughout the course of this thesis. Nevertheless this section presents the initial diagram for the implementation of the engine. This implementation is based on the one outlined in the Unlimited Vector Extension with Data Streaming Support paper \cite{uve-paper}. 
 It involves modifying the decode, register file, and execution units to support not only the UVE instruction-set extension but also the support for vector processing including the vector registers and vector operations. The proposed register file modification can be resumed to adding a new set of stream registers, both in the read register file and the write register file. Additionally, it will also involve modifying the rename stage, which needs to be altered to support the renaming of vector registers and streams, and the commit stage to allow the commit and squash of streams in the streaming engine.
 
-In addition to the modifications to the CPU architecture mentioned above, the implementation of the streaming engine itself is required. The placement of the streaming engine in the pipeline can be observed in Fig. \ref{fig:cva6-altered-pipeline}.
+In addition to the modifications to the CPU architecture mentioned above, the implementation of the streaming engine itself is required. The suggestion of placement of the streaming engine in the pipeline can be observed in Fig. \ref{fig:cva6-altered-pipeline}.
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.75\linewidth]{images/cva6-overview-altered-simplified.png}
@@ -70,9 +70,7 @@ In addition to the modifications to the CPU architecture mentioned above, the im
 \end{figure}
 
 
-The initial proposal for the placement of the streaming engine is in the issue stage of the pipeline. The streaming engine will be directly connected to the newly integrated stream registers of the Read Register File and the Write Register File. 
-
-It will also interface with the cache system however, some testing needs to be done in order to assess the best configuration. Connecting the stream engine to the L1 Cache could be simpler however, this level might have too much access stress, meaning that connecting to it could lead to a slowdown in memory access. Interfacing directly with L2 will not have the same stress problem as L1 but can lead to a memory incoherence problem,  for this reason, a well-thought-out choice will need to be made.
+The initial proposal for the placement of the streaming engine is in the issue stage of the pipeline. The streaming engine will be directly connected to the newly integrated stream registers of the Read Register File and the Write Register File. It will also interface with the cache system however, some testing needs to be done in order to assess the best configuration. Connecting the stream engine to the L1 Cache could be simpler however, this level might have too much access stress, meaning that connecting to it could lead to a slowdown in memory access. Interfacing directly with L2 will not have the same stress problem as L1 but can lead to a memory incoherence problem,  for this reason, a well-thought-out choice will need to be made.
 
 Besides connecting to the cache subsystems, the streaming engine will also be connected directly to the system's memory, allowing it to perform memory requests through its memory request queue.
 

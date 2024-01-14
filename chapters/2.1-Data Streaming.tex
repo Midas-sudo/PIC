@@ -75,7 +75,7 @@ Both the Softbrain and the ASIC implementations showed 1-7x speedup gains across
 
 On area comparison, the \textit{Softbrain} showed a bigger area use however, since \textit{Softbrain} is programmable on runtime and able to run all workloads, it is possible to advocate that the \textit{Softbrain} implementation is more area efficient than the ASIC implementation since designing a system for the full set of benchmarks performed would require 2.4x the area of \textit{Softbrain}.
 
-Nowatzki \textit{et al.} \cite{8192490} conclude by stating that the developed work demonstrates the potential of designing programmable/configurable architecture that leverage the advantages of streaming structures, something on which my thesis will also focus.
+Nowatzki \textit{et al.} \cite{8192490} conclude by stating that the developed work demonstrates the potential of designing programmable/configurable architecture that leverage the advantages of streaming structures.
 
 
 \subsection{Stream-based Memory Access Specialization for General Purpose Processors}
@@ -104,11 +104,11 @@ The FIFOs of the streaming engine have the purpose of holding the decoupled stat
 
 \subsubsection{Decoupled-Stream ISA}
 
-The stream-specialized interface proposed by Wang and Nowatzki (2019) \cite{8980305}, tries to maintain the stream data structure implementation separated from the rest of the cores' microarchitecture maintaining a higher level of abstraction. This is made through the use of special pseudo-registers to which the execution pipeline has access and are mapped to specific data streams. The streaming part of the system applies a similar principle to the Stream Dataflow Accelerator in the sense that it is configurable through an instruction.
+The stream-specialized interface proposed by Wang and Nowatzki (2019) \cite{8980305}, tries to maintain the stream data structure implementation separated from the rest of the cores' microarchitecture maintaining a higher level of abstraction. This is made through the use of special pseudo-registers to which the execution pipeline has access and are mapped to specific data streams. The streaming part of the system applies a similar principle to the Stream Dataflow Accelerator in the sense that it is configurable through an initial instruction.
 
-The execution of code compiled for this stream interface contains such instruction at the beginning of code sections that will benefit from data streaming (loop portions of code). It is responsible for: setting up the necessary pseudo-registers employed by the core pipeline and mapped to the data streams, configuring the streams type (induction/memory) and pattern (stride, width, and optional length),  the dependencies and the starting address. The configuration of streams can also be made to address another stream, thereby establishing a dependency through indirect memory access.
+The execution of code compiled for this stream interface contains such instruction at the beginning of code sections that will benefit from data streaming (loop portions of code). It is responsible for: \textbf{setting up} the necessary \textbf{pseudo-registers} employed by the core pipeline and mapped to the \textbf{data streams}, configuring the \textbf{streams type} (induction/memory) and \textbf{pattern} (stride, width, and optional length),  the dependencies and the starting address. The configuration of streams can also be made to address another stream, thereby establishing a dependency through indirect memory access.
 
-During the execution of the code in the pipeline, a "step" instruction is employed to advance the position of the stream, providing the core with abstract information on the stream's progress. At the end of the loop iterations, the configured streams are deallocated and released for the next utilization.
+During the execution of the code in the pipeline, a "step" instruction is employed to advance the position of the stream by modifying the induction variables related to the streams and providing the core with abstract information on the stream's progress. At the end of the loop iterations, the configured streams are deallocated and released for the next utilization.
 
 The proposed Instruction Set Architecture (\acrshort{ISA}) incorporates a set of instructions that enable fundamental stream operations, like pattern definitions and data width configuration, supporting complex accesses to data and coalescing of data structures. 
 
@@ -134,7 +134,7 @@ The proposed \acrshort{ISA} comes with its limitations since the decoupling natu
 \subsubsection{Using Stream Information}
 Wang and Nowatzki (2019) \cite{8980305} also propose the exploitation of the stream information provided by the decoupled design of the presented implementation. Accordingly a prefetching technique and stream-aware cache bypass policies were implemented leveraging such stream information.
 
-In what concerns the prefetching, the distance in which prefetching is made can highly impact the smooth operation of a cores' pipeline. In an ideal prefetcher, the required data would be provided whenever the corresponding load instruction is ready to be issued. This means that a sign of poor performance of the prefetcher could be falling behind on the data requests. For the monitoring and correct utilization of the resources of the processor, Wang and Nowatzki (2019) \cite{8980305} took the approach of implementing a set of counters that track the number of stalls that occur with each stream pseudo-register. These counters enable the pipeline to dynamically readjust the size distribution of the Load FIFO across stream pseudo-registers. This adjustment provides streams with increased available space, subsequently allowing the prefetching distance of specific streams to be incremented based on the rate at which data is being consumed.
+In what concerns the prefetching, the distance in which prefetching is made can highly impact the smooth operation of a cores' pipeline. In an ideal prefetcher, the required data would be provided whenever the corresponding load instruction is ready to be issued. This means that a sign of poor performance of the prefetcher could be falling behind on the data requests. For the monitoring and correct utilization of the resources of the processor, Wang and Nowatzki (2019) \cite{8980305} took the approach of implementing a set of counters that track the number of stalls that occur with each stream pseudo-register, entitling it as the dynamic throttling prefetching system. These counters enable the pipeline to dynamically readjust the size distribution of the Load FIFO across stream pseudo-registers. This adjustment provides streams with increased available space and subsequently allow the prefetching distance of specific streams to be incremented based on the rate at which data is being consumed.
 
 In the proposed implementation, the initial value of each stream pseudo-register length is defined in the configuration step with a default value. However, this could be further improved by defining a more personalized value during compilation.
 
@@ -206,7 +206,7 @@ In case both conditions are true then the transaction is routed out of the core 
 
 The accesses initiated within the core and directed outward through the stream interfaces reach the data mover unit. This segment of the architecture, visible in Figure \ref{fig:ssr-data_mover} is tasked with accurately mapping the incoming accesses to the memory system. To execute this function, the data mover incorporates a set of lanes, each comprising a \textit{First-In-First-Out (FIFO)} queue buffer and an address generator unit (AGU). The AGU is responsible for associating each streamed access with the corresponding memory address, whether for reading or writing. Offloading the memory address generation outside of the main pipeline reduces the pressure caused by this type of function.
 
-The internal diagram of the AGU can be seen on the right of Figure \ref{fig:ssr-data_mover} and is based on AGU presented by Schuiki \textit{et al.} \cite{8502059}. It works through the configuration of the hardware loops ($L0$ to $L3$), which act as counters that iterate over the parameters of the stream access pattern and provide the values necessary for the address generation. 
+The internal diagram of the AGU can be seen on the right of Figure \ref{fig:ssr-data_mover} and is based on AGU presented by Schuiki \textit{et al.} \cite{8502059}. It works through the configuration of the hardware loops ($L0$ to $L3$), which are composed of 16-bit counters that iterate over the parameters of the stream access pattern and provide the values necessary for the address generation. 
 
 \begin{figure}[H]
 	\begin{center}
@@ -216,7 +216,7 @@ The internal diagram of the AGU can be seen on the right of Figure \ref{fig:ssr-
 	\end{center} 
 \end{figure}
 
-For each processed stream, the AGU is configured in either reading mode, generating memory addresses, or writing mode, producing tags for each datum to be written. It's noteworthy that the processing of streams cannot be interleaved; thus, the same mode persists until the conclusion of the address pattern.
+For each processed stream, the AGU is configured in either reading mode, generating memory addresses, or writing mode, producing tags for each datum to be written. It's noteworthy that the processing of streams cannot be interleaved; thus, the same mode has to persists per AGU until the conclusion of the address pattern.
 
 
 A positive aspect arising from the previously mentioned constraint is the proactive capability of the data mover to perform memory reads using the defined configuration. This behavior facilitates quicker access to data, as whenever the processor decides to read from an SSR, the data is already available. This stands in contrast to normal data accesses, where each request needs to be individually made and awaited.
@@ -225,7 +225,7 @@ Unfortunately, due to the design of the data mover and the pro-active read, memo
 
 \subsubsection{Execution Flow}
 
-The execution of a program compiled for this solution starts with the setup of the configuration registers present in the AGUs of the data mover. These registers define the loop dimensions of a stream, allowing for a total of four dimension loops. After the activation of stream semantics in the cores' CSR the iteration of the computations occurs with the AGU loop counters also iterating over the preconfigured access patterns and providing the necessary data to the main pipeline of the core.
+The execution of a program compiled for this solution starts with the setup of the configuration registers present in the AGUs of the data mover. These registers define the loop dimensions of a stream, allowing for a total of four dimension loops. After the activation of stream semantics in the cores' CSR the iteration of the computations occurs with the AGU loop counters iterating over the preconfigured access patterns and providing the necessary data to the main pipeline of the core.
 
 At the end of the code section optimized for the use of stream semantics, the program executes an instruction to deactivate the use of stream semantics, allowing the core to utilize every register as normal registers.
 
