@@ -105,8 +105,7 @@ The \acrlong{RVV} introduces a collection of 32 variable-length vector registers
 
 The manipulation of vectors is facilitated through the implementation of a new set of instructions introduced with the \acrshort{RVV} extension. This extension supports typical arithmetic operations for both fixed and floating-point data, along with reduction operations such as sum, max, and min. Additionally, certain instructions can be customized through the use of masking, allowing the disabling or enabling of specific vector elements during processing.
 
-In Fig. \ref{fig:uve-comparison}, an example of a simple saxpy application compiled with the RVV extension is illustrated. Throughout the loop iteration, vector registers are used to store data and vector-specific instructions to manipulate the vectors. At the beginning of the loop, an instruction ($vsertvli$) is utilized to define the characteristics of the vector, including its length and data type.
-
+In Fig. \ref{fig:uve-comparison}, an example of a simple saxpy application compiled with the RVV extension is illustrated. Throughout the loop iteration, vector registers are used to store data and vector-specific instructions to manipulate the vectors. At the beginning of the loop, an instruction ($vsertvli$) is utilized to define the characteristics of the vector, including its length and data type. Afterward, in the loop section, all instructions that manipulate vectorized data, do so with the information of the current vector configuration defined in the beginning. 
 
 
 
